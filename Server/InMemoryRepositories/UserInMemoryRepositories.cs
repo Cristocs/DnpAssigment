@@ -3,9 +3,29 @@ using RepositoryContracts;
 
 namespace InMemoryRepositories;
 
-public class UserInMemoryRepository : IUserRepository
+public class UserInMemoryRepositories : IUserRepository
 {
-    private readonly List<User> users = new();
+    private readonly List<User> users = new()
+    {
+        new User
+        {
+            Id = 1,
+            Username = "john",
+            Password = "1234"
+        },
+        new User
+        {
+            Id = 2,
+            Username = "anna",
+            Password = "5678"
+        },
+        new User
+        {
+            Id = 3,
+            Username = "mike",
+            Password = "abcd"
+        }
+    };
 
     public Task<User> AddAsync(User user)
     {
