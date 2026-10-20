@@ -1,6 +1,118 @@
-@WebApplication3_HostAddress = http://localhost:5276
+POST http://localhost:5276/Users
+Content-Type: application/json
 
-GET {{WebApplication3_HostAddress}}/weatherforecast/
-Accept: application/json
+{
+  "username": "crist",
+  "password": "1234"
+}
 
 ###
+
+GET http://localhost:5276/Users/1
+
+###
+
+GET http://localhost:5276/Users
+
+###
+
+GET http://localhost:5276/Users?username=cri
+
+###
+
+PUT http://localhost:5276/Users/1
+Content-Type: application/json
+
+{
+  "username": "cristActualize",
+  "password": "nuevaClave"
+}
+
+###
+
+GET http://localhost:5276/Users/1
+
+###
+
+DELETE http://localhost:5276/Users/1
+
+###
+
+POST http://localhost:5276/Posts
+Content-Type: application/json
+
+{
+  "title": "Mi primer post",
+  "body": "Contenido de prueba",
+  "userId": 1
+}
+
+###
+
+GET http://localhost:5276/Posts/1
+
+###
+
+GET http://localhost:5276/Posts
+
+###
+
+GET http://localhost:5276/Posts?title=primer
+
+###
+
+GET http://localhost:5276/Posts?userId=1
+
+###
+
+PUT http://localhost:5276/Posts/1
+Content-Type: application/json
+
+{
+  "title": "Post actualizado",
+  "body": "Contenido actualizado"
+}
+
+###
+
+DELETE http://localhost:5276/Posts/1
+
+###
+
+POST http://localhost:5276/Comments
+Content-Type: application/json
+
+{
+  "body": "Este es mi comentario",
+  "userId": 1,
+  "postId": 1
+}
+
+###
+
+GET http://localhost:5276/Comments/4
+
+###
+
+GET http://localhost:5276/Comments
+
+###
+
+GET http://localhost:5276/Comments?userId=1
+
+###
+
+GET http://localhost:5276/Comments?postId=1
+
+###
+
+PUT http://localhost:5276/Comments/1
+Content-Type: application/json
+
+{
+  "body": "Comentario actualizado"
+}
+
+###
+
+DELETE http://localhost:5276/Comments/1
