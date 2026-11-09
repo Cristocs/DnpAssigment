@@ -1,0 +1,61 @@
+@page "/users/create"
+@inject IUserService UserService
+
+<PageTitle>Create user</PageTitle>
+
+<div class="card form">
+    <h1>Create user</h1>
+
+    <label>Username</label>
+    <input type="text" @bind="username"/>
+
+    <label>Password</label>
+    <input type="password" @bind="password"/>
+
+    @if (!string.IsNullOrEmpty(errorLabel))
+    {
+        <p class="error">@errorLabel</p>
+    }
+    @if (!string.IsNullOrEmpty(successLabel))
+    {
+        <p class="success">@successLabel <a href="login">Log in now</a></p>
+    }
+
+    <button class="btn" @onclick="CreateAsync">Create</button>
+</div>
+
+@code {
+    private string username = "";
+    private string password = "";
+    private string errorLabel = "";
+    private string successLabel = "";
+
+    private async Task CreateAsync()
+    {
+        errorLabel = "";
+        successLabel = "";
+
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            errorLabel = "Username and password are required";
+            return;
+        }
+
+        try
+        {
+            UserDto created = await UserService.AddUserAsync(new CreateUserDto
+            {
+                Username = username,
+                Password = password
+            });
+            successLabel = $"User '{created.Username}' created with id {created.Id}.";
+            username = "";
+            password = "";
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            errorLabel = $"Error: {e.Message}";
+        }
+    }
+}

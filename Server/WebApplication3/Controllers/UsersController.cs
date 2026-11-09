@@ -19,6 +19,14 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<UserDto>> AddUser([FromBody] CreateUserDto request)
     {
+        // Para que el login funcione, el username tiene que ser único
+        bool usernameTaken = userRepository.GetMany()
+            .Any(u => u.Username.Equals(request.Username, StringComparison.OrdinalIgnoreCase));
+        if (usernameTaken)
+        {
+            return Conflict($"Username '{request.Username}' is already taken");
+        }
+
         User user = new()
         {
             Username = request.Username,

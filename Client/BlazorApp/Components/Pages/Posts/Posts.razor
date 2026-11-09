@@ -1,0 +1,81 @@
+@page "/posts"
+@inject IPostService PostService
+@inject IUserService UserService
+
+<PageTitle>Posts</PageTitle>
+
+<h1>Posts</h1>
+
+<div class="toolbar">
+    <input placeholder="Title contains..." @bind="titleFilter"/>
+    <button class="btn" @onclick="LoadAsync">Search</button>
+    <AuthorizeView>
+        <Authorized>
+            <a class="btn btn-secondary" href="posts/create">New post</a>
+        </Authorized>
+    </AuthorizeView>
+</div>
+
+@if (UserId.HasValue)
+{
+    <p class="muted">Showing posts by @AuthorName(UserId.Value). <a href="posts">Show all</a></p>
+}
+
+@if (!string.IsNullOrEmpty(errorLabel))
+{
+    <p class="error">@errorLabel</p>
+}
+else if (posts is null)
+{
+    <p class="muted">Loading...</p>
+}
+else if (!posts.Any())
+{
+    <p class="muted">No posts found.</p>
+}
+else
+{
+    <ul class="list">
+        @foreach (PostDto post in posts)
+        {
+            <li>
+                <a href="posts/@post.Id">@post.Title</a>
+                <span class="muted">by @AuthorName(post.UserId)</span>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    // Permite /posts?userId=3 (se usa desde la página de usuarios)
+    [SupplyParameterFromQuery] public int? UserId { get; set; }
+
+    private List<PostDto>? posts;
+    private Dictionary<int, string> userNames = new();
+    private string titleFilter = "";
+    private string errorLabel = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        errorLabel = "";
+        try
+        {
+            IEnumerable<UserDto> users = await UserService.GetUsersAsync();
+            userNames = users.ToDictionary(u => u.Id, u => u.Username);
+            posts = (await PostService.GetPostsAsync(titleFilter, UserId)).ToList();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            errorLabel = $"Error: {e.Message}";
+        }
+    }
+
+    private string AuthorName(int userId) =>
+        userNames.TryGetValue(userId, out string? name) ? name : $"user #{userId}";
+}

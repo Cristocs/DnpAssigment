@@ -1,0 +1,19 @@
+@page "/"
+@inject NavigationManager NavMgr
+
+<PageTitle>Home</PageTitle>
+
+<h1>DNP Forum</h1>
+
+<AuthorizeView>
+    <Authorized>
+        <p>Hello, <strong>@context.User.Identity?.Name</strong>! Here you can browse interesting posts.</p>
+        <button class="btn" @onclick='() => NavMgr.NavigateTo("posts")'>See posts</button>
+        <button class="btn btn-secondary" @onclick='() => NavMgr.NavigateTo("posts/create")'>Write a post</button>
+    </Authorized>
+    <NotAuthorized>
+        <p>You are not logged in. You can still read posts, but you need an account to write.</p>
+        <button class="btn" @onclick='() => NavMgr.NavigateTo("login")'>Go to login</button>
+        <button class="btn btn-secondary" @onclick='() => NavMgr.NavigateTo("users/create")'>Create account</button>
+    </NotAuthorized>
+</AuthorizeView>

@@ -1,0 +1,64 @@
+@page "/login"
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager NavMgr
+
+<PageTitle>Log in</PageTitle>
+
+<AuthorizeView>
+    <NotAuthorized>
+        <div class="card form">
+            <h1>Please log in</h1>
+
+            <label>Username</label>
+            <input type="text" @bind="username"/>
+
+            <label>Password</label>
+            <input type="password" @bind="password"/>
+
+            @if (!string.IsNullOrEmpty(errorLabel))
+            {
+                <p class="error">@errorLabel</p>
+            }
+
+            <button class="btn" @onclick="LoginAsync" disabled="@isBusy">Log in</button>
+            <p class="muted">No account? <a href="users/create">Create one</a></p>
+        </div>
+    </NotAuthorized>
+    <Authorized>
+        <h1>Hello, @context.User.Identity?.Name</h1>
+        <p>You are already logged in.</p>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private string username = "";
+    private string password = "";
+    private string errorLabel = "";
+    private bool isBusy;
+
+    private async Task LoginAsync()
+    {
+        errorLabel = "";
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            errorLabel = "Type in username and password";
+            return;
+        }
+
+        isBusy = true;
+        try
+        {
+            await ((SimpleAuthProvider)AuthProvider).LoginAsync(username, password);
+            NavMgr.NavigateTo("/");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            errorLabel = $"Error: {e.Message}";
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+}

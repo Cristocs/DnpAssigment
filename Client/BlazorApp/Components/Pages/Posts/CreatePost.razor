@@ -1,0 +1,76 @@
+@page "/posts/create"
+@inject IPostService PostService
+@inject NavigationManager NavMgr
+
+<PageTitle>New post</PageTitle>
+
+@* Solo usuarios logueados pueden escribir posts (Parte 6) *@
+<AuthorizeView>
+    <Authorized>
+        <div class="card form">
+            <h1>New post</h1>
+
+            <label>Title</label>
+            <input type="text" @bind="title"/>
+
+            <label>Body</label>
+            <textarea rows="6" @bind="body"></textarea>
+
+            @if (!string.IsNullOrEmpty(errorLabel))
+            {
+                <p class="error">@errorLabel</p>
+            }
+
+            <button class="btn" @onclick="CreateAsync">Publish</button>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <div class="card">
+            <h1>New post</h1>
+            <p>You need to <a href="login">log in</a> to write a post.</p>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [CascadingParameter] public Task<AuthenticationState> State { get; set; } = null!;
+
+    private string title = "";
+    private string body = "";
+    private string errorLabel = "";
+
+    private async Task CreateAsync()
+    {
+        errorLabel = "";
+        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(body))
+        {
+            errorLabel = "Title and body are required";
+            return;
+        }
+
+        // El autor es el usuario logueado (antes de la Parte 6 era UserId = 1 a fuego)
+        AuthenticationState authState = await State;
+        int? userId = authState.User.GetUserId();
+        if (userId is null)
+        {
+            errorLabel = "You are not logged in";
+            return;
+        }
+
+        try
+        {
+            PostDto created = await PostService.AddPostAsync(new CreatePostDto
+            {
+                Title = title,
+                Body = body,
+                UserId = userId.Value
+            });
+            NavMgr.NavigateTo($"posts/{created.Id}");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            errorLabel = $"Error: {e.Message}";
+        }
+    }
+}

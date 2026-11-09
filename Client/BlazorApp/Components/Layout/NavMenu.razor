@@ -1,0 +1,26 @@
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager NavMgr
+
+<nav class="nav">
+    <NavLink href="posts">Posts</NavLink>
+    <NavLink href="users">Users</NavLink>
+    <AuthorizeView>
+        <Authorized>
+            <NavLink href="posts/create">New post</NavLink>
+            <span class="who">@context.User.Identity?.Name</span>
+            <button class="btn-link" @onclick="LogoutAsync">Log out</button>
+        </Authorized>
+        <NotAuthorized>
+            <NavLink href="users/create">Sign up</NavLink>
+            <NavLink href="login">Log in</NavLink>
+        </NotAuthorized>
+    </AuthorizeView>
+</nav>
+
+@code {
+    private async Task LogoutAsync()
+    {
+        await ((SimpleAuthProvider)AuthProvider).LogoutAsync();
+        NavMgr.NavigateTo("/");
+    }
+}
