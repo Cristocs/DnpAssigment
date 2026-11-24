@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RepositoryContracts;
 using ApiContracts;
 using Entities;
@@ -39,24 +40,44 @@ public class PostsController : ControllerBase
         return Created($"/Posts/{dto.Id}", dto);
     }
     
+    // Parte 7: una sola consulta con Include + Select que trae el post,
+    // el nombre del autor y sus comentarios (en vez de varias llamadas a la BD).
     [HttpGet("{id:int}")]
     public async Task<ActionResult<PostDto>> GetPost(int id)
     {
-        Post post = await postRepository.GetSingleAsync(id);
+        PostDto? dto = await postRepository.GetMany()
+            .Where(p => p.Id == id)
+            .Include(p => p.User)
+            .Include(p => p.Comments)
+            .Select(p => new PostDto
+            {
+                Id = p.Id,
+                Title = p.Title,
+                Body = p.Body,
+                UserId = p.UserId,
+                AuthorName = p.User.Username,
+                Comments = p.Comments
+                    .Select(c => new CommentDto
+                    {
+                        Id = c.Id,
+                        Body = c.Body,
+                        UserId = c.UserId,
+                        PostId = c.PostId
+                    })
+                    .ToList()
+            })
+            .FirstOrDefaultAsync();
 
-        PostDto dto = new()
+        if (dto is null)
         {
-            Id = post.Id,
-            Title = post.Title,
-            Body = post.Body,
-            UserId = post.UserId
-        };
+            return NotFound($"Post with ID {id} was not found.");
+        }
 
         return Ok(dto);
     }
     
     [HttpGet]
-    public ActionResult<IEnumerable<PostDto>> GetPosts(
+    public async Task<ActionResult<IEnumerable<PostDto>>> GetPosts(
         [FromQuery] string? title,
         [FromQuery] int? userId)
     {
@@ -64,8 +85,8 @@ public class PostsController : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(title))
         {
-            query = query.Where(post =>
-                post.Title.Contains(title, StringComparison.OrdinalIgnoreCase));
+            string lower = title.ToLower();
+            query = query.Where(post => post.Title.ToLower().Contains(lower));
         }
 
         if (userId.HasValue)
@@ -73,7 +94,7 @@ public class PostsController : ControllerBase
             query = query.Where(post => post.UserId == userId.Value);
         }
 
-        List<PostDto> posts = query
+        List<PostDto> posts = await query
             .Select(post => new PostDto
             {
                 Id = post.Id,
@@ -81,7 +102,7 @@ public class PostsController : ControllerBase
                 Body = post.Body,
                 UserId = post.UserId
             })
-            .ToList();
+            .ToListAsync();
 
         return Ok(posts);
     }
@@ -106,4 +127,4 @@ public class PostsController : ControllerBase
 
         return NoContent();
     }
-}
+}

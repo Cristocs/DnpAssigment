@@ -3,3 +3,7 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+# Parte 7: base de datos SQLite local
+*.db
+*.db-shm
+*.db-wal

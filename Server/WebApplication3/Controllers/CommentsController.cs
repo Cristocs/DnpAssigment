@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RepositoryContracts;
 using ApiContracts;
 using Entities;
@@ -56,7 +57,7 @@ public class CommentsController : ControllerBase
     }
     
     [HttpGet]
-    public ActionResult<IEnumerable<CommentDto>> GetComments(
+    public async Task<ActionResult<IEnumerable<CommentDto>>> GetComments(
         [FromQuery] int? userId,
         [FromQuery] int? postId)
     {
@@ -72,7 +73,7 @@ public class CommentsController : ControllerBase
             query = query.Where(comment => comment.PostId == postId.Value);
         }
 
-        List<CommentDto> comments = query
+        List<CommentDto> comments = await query
             .Select(comment => new CommentDto
             {
                 Id = comment.Id,
@@ -80,7 +81,7 @@ public class CommentsController : ControllerBase
                 UserId = comment.UserId,
                 PostId = comment.PostId
             })
-            .ToList();
+            .ToListAsync();
 
         return Ok(comments);
     }
@@ -104,4 +105,4 @@ public class CommentsController : ControllerBase
 
         return NoContent();
     }
-}
+}

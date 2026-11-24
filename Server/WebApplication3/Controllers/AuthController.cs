@@ -1,6 +1,7 @@
 using ApiContracts;
 using Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RepositoryContracts;
 
 namespace WebApplication3.Controllers;
@@ -18,11 +19,13 @@ public class AuthController : ControllerBase
 
     // POST /auth/login
     [HttpPost("login")]
-    public ActionResult<UserDto> Login([FromBody] LoginRequest request)
+    public async Task<ActionResult<UserDto>> Login([FromBody] LoginRequest request)
     {
         // 1. Buscar el usuario por su username
-        User? user = userRepository.GetMany()
-            .FirstOrDefault(u => u.Username.Equals(request.Username, StringComparison.OrdinalIgnoreCase));
+        // (Parte 7) EF Core no sabe traducir StringComparison a SQL, así que usamos ToLower()
+        string username = request.Username.ToLower();
+        User? user = await userRepository.GetMany()
+            .FirstOrDefaultAsync(u => u.Username.ToLower() == username);
 
         // 2. Si no existe -> 401
         if (user is null)

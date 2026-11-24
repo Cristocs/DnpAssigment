@@ -1,6 +1,7 @@
 ﻿using ApiContracts;
 using Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RepositoryContracts;
 
 namespace WebApplication3.Controllers;
@@ -20,8 +21,9 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<UserDto>> AddUser([FromBody] CreateUserDto request)
     {
         // Para que el login funcione, el username tiene que ser único
-        bool usernameTaken = userRepository.GetMany()
-            .Any(u => u.Username.Equals(request.Username, StringComparison.OrdinalIgnoreCase));
+        string lowerName = request.Username.ToLower();
+        bool usernameTaken = await userRepository.GetMany()
+            .AnyAsync(u => u.Username.ToLower() == lowerName);
         if (usernameTaken)
         {
             return Conflict($"Username '{request.Username}' is already taken");
@@ -59,23 +61,23 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<UserDto>> GetUsers([FromQuery] string? username)
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers([FromQuery] string? username)
     {
         IQueryable<User> query = userRepository.GetMany();
 
         if (!string.IsNullOrWhiteSpace(username))
         {
-            query = query.Where(user =>
-                user.Username.Contains(username, StringComparison.OrdinalIgnoreCase));
+            string lower = username.ToLower();
+            query = query.Where(user => user.Username.ToLower().Contains(lower));
         }
 
-        List<UserDto> users = query
+        List<UserDto> users = await query
             .Select(user => new UserDto
             {
                 Id = user.Id,
                 Username = user.Username
             })
-            .ToList();
+            .ToListAsync();
 
         return Ok(users);
     }
@@ -100,4 +102,4 @@ public class UsersController : ControllerBase
 
         return NoContent();
     }
-}
+}
